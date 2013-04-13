@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+
+module Exampler
+  class Cli
+
+    def initialize(cwd)
+      @cwd = cwd.gsub("\n", '').gsub(/ +/, ' ').strip
+    end
+
+    def process_files!
+      with_lines do
+        puts "going over example yml files and processing..."
+      end
+
+      example_files.each do |file|
+        process_file!(file)
+      end
+    end
+
+    def with_lines
+      linebreak
+      yield
+      linebreak
+    end
+
+    def linebreak
+      puts "==================================================="
+    end
+
+    def process_file!(file_path)
+      puts "* processing #{file_path}"
+
+      copy_path = file_path.gsub(/\.example\.yml$/, '.yml')
+
+      if File.exist?(copy_path)
+        puts "** file already exists, skipping"
+        return
+      end
+
+      %x[cp #{file_path} #{copy_path}]
+      puts "** copied #{file_path} -- to -- #{copy_path}"
+    end
+
+    def example_files
+      %x[ls #{@cwd}/config/*.example.yml].split("\n")
+    end
+
+  end
+end
+
+cli = Exampler::Cli.new(%x[pwd])
+cli.process_files!
