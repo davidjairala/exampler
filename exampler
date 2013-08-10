@@ -4,7 +4,7 @@ module Exampler
   class Cli
 
     def initialize(cwd)
-      @cwd = cwd.gsub("\n", '').gsub(/ +/, ' ').strip
+      @cwd = cwd.strip
     end
 
     def process_files!
@@ -48,5 +48,5 @@ module Exampler
   end
 end
 
-cli = Exampler::Cli.new(%x[pwd])
+cli = Exampler::Cli.new(%x[pwd].chomp)
 cli.process_files!
