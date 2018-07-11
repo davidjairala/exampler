@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require 'fileutils'
 
 module Exampler
   class Cli
@@ -17,6 +18,34 @@ module Exampler
       end
     end
 
+    def process_file!(file_path)
+      puts "* processing #{file_path}"
+
+      copy_path = file_path.gsub(/\.example\.yml$/, '.yml')
+
+      if File.exist?(copy_path)
+        if files_identical?(file_path, copy_path)
+          puts "** file already exists--but they're identical. Moving on!"
+          return
+        else
+          puts "** file already exists…"
+          puts "** here's the diff:"
+
+          system "git diff --no-index #{copy_path} #{file_path}"
+        end
+
+        if prompt_yes_no?("[?] overwrite [#{copy_path}] with new [#{file_path}]?")
+          puts "** OK! overwriting [#{copy_path}]"
+        else
+          return
+        end
+      end
+
+      copy(file_path, copy_path)
+    end
+
+    private
+
     def with_lines
       linebreak
       yield
@@ -27,22 +56,22 @@ module Exampler
       puts "==================================================="
     end
 
-    def process_file!(file_path)
-      puts "* processing #{file_path}"
-
-      copy_path = file_path.gsub(/\.example\.yml$/, '.yml')
-
-      if File.exist?(copy_path)
-        puts "** file already exists, skipping"
-        return
-      end
-
-      %x[cp #{file_path} #{copy_path}]
-      puts "** copied #{file_path} -- to -- #{copy_path}"
-    end
-
     def example_files
       %x[ls #{@cwd}/config/*.example.yml].split("\n")
+    end
+
+    def copy(from, to)
+      %x[cp #{from} #{to}]
+      puts "** copied #{from} -- to -- #{to}"
+    end
+
+    def prompt_yes_no?(prompt)
+        puts "#{prompt} (y/N)"
+        gets.chomp.start_with?("Y", "y")
+    end
+
+    def files_identical?(f1, f2)
+      FileUtils.compare_file(f1, f2)
     end
 
   end
