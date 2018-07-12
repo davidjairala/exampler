@@ -12,3 +12,7 @@ git clone git@github.com:davidjairala/exampler.git
 cd my_project/
 ../exampler/exampler
 ```
+
+# Requirements
+
+* Git
